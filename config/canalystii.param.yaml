@@ -1,0 +1,7 @@
+/**:
+  ros__parameters:
+    frame_id: "can"
+    device_idx: 0
+    can_idx: 0
+    can_baud_rate: 0x1C00
+    use_bus_time: false

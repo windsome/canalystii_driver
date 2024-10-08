@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="canalystii_param_path" default="$(find-pkg-share canalystii_driver)/config/canalystii.param.yaml"/>
+
+  <!-- canalystii interface -->
+  <node pkg="canalystii_driver" exec="can_bridge_node_exe" name="can_bridge" output="screen" args="--ros-args --log-level DEBUG">
+    <param from="$(var canalystii_param_path)"/>
+    <remap from="~/to_can_bus" to="/canalystii/to_can_bus"/>
+    <remap from="~/from_can_bus" to="/canalystii/from_can_bus"/>
+  </node>
+</launch>

@@ -93,13 +93,16 @@ private:
   std::shared_ptr<lc::LifecyclePublisher<can_msgs::msg::Frame>> frames_pub_; // 接收創芯的消息，轉發到autoware
   std::unique_ptr<std::thread> receiver_thread_; // 接收創芯CAN消息的線程
   rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr frames_sub_; // 接收autoware發的CAN命令，轉發到CAN
-  std::unique_ptr<CANalystii> driver_;
+  // std::unique_ptr<CANalystii> driver_;
+  std::unique_ptr<BaseCAN> driver_;
 
   std::string frame_id_{"can"};
   uint32_t device_idx_{0};
   uint32_t can_idx_{0};
   uint32_t can_baud_rate_{0x1C00};
   bool use_bus_time_{false};
+  bool test_csv_{false};
+  std::string csv_path_{""};
 
 };  // class CanBridgeNode
 

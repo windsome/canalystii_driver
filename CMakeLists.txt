@@ -9,6 +9,8 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
+set(CMAKE_BUILD_TYPE Debug)
+
 ## executable
 ament_auto_add_library(can_bridge_node SHARED
   src/canalystii.cpp

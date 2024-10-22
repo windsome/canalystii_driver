@@ -28,7 +28,7 @@ from launch_ros.event_handlers import OnStateTransition
 from launch_ros.events.lifecycle import ChangeState
 from launch_ros.events.lifecycle import matches_node_name
 from lifecycle_msgs.msg import Transition
-
+from launch.actions import LogInfo
 
 def generate_launch_description():
     share_dir = get_package_share_directory('canalystii_driver')
@@ -41,18 +41,26 @@ def generate_launch_description():
         description='File path to the ROS2 parameters file to use'
     )
 
+    DeclareLaunchArgument('csv_path',
+                          default_value=os.path.join(share_dir, 'config', 'can1.csv'),
+                          description='can report record'
+    )
+
     bridge_node = LifecycleNode(
         package='canalystii_driver',
         executable='can_bridge_node_exe',
         name=node_name,
         namespace=TextSubstitution(text=''),
-        parameters=[LaunchConfiguration('params_file')],
+        parameters=[
+            {'csv_path': LaunchConfiguration('csv_path', default=os.path.join(share_dir, 'config', 'can1.csv'))},
+            LaunchConfiguration('params_file'),
+        ],
         output='screen',
         remappings=[
             ('to_can_bus', '/canalystii/to_can_bus'),
             ('from_can_bus', '/canalystii/from_can_bus'),
         ],
-        arguments=['--ros-args', '--log-level', 'DEBUG']
+        # arguments=['--ros-args', '--log-level', 'DEBUG']
     )
 
     configure_event_handler = RegisterEventHandler(
@@ -88,6 +96,7 @@ def generate_launch_description():
     shutdown_event_handler = RegisterEventHandler(
         event_handler=OnShutdown(
             on_shutdown=[
+                LogInfo(msg="[LifecycleLaunch] can driver node is to shutdown."),
                 EmitEvent(
                     event=ChangeState(
                         lifecycle_node_matcher=matches_node_name(node_name),

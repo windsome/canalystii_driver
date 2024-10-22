@@ -57,7 +57,13 @@ LNI::CallbackReturn CanBridgeNode::on_configure(const lc::State & state)
 {
   (void)state;
   try {
-    driver_ = std::make_unique<CANalystii>(device_idx_);
+    if (test_csv_ && csv_path_ != "") {
+      RCLCPP_INFO(get_logger(), "start CANFromRecordFile.");
+      driver_ = std::make_unique<CANFromRecordFile>(csv_path_, use_bus_time_);
+    } else {
+      RCLCPP_INFO(get_logger(), "start CANalystii.");
+      driver_ = std::make_unique<CANalystii>(device_idx_);
+    }
     // 接收到創芯轉換器消息，發送到autoware：from_can_bus
     frames_pub_ = this->create_publisher<can_msgs::msg::Frame>("from_can_bus", 500);
     // 接收到autoware：to_can_bus消息，發往創芯轉換器
@@ -153,6 +159,17 @@ void CanBridgeNode::get_params()
   } catch (rclcpp::ParameterTypeException & ex) {
     RCLCPP_ERROR(get_logger(), "The use_bus_time provided was invalid");
   }
+  try {
+    test_csv_ = declare_parameter<bool>("test_csv", false);
+  } catch (rclcpp::ParameterTypeException & ex) {
+    RCLCPP_ERROR(get_logger(), "The test_csv provided was invalid");
+  }
+  try {
+    csv_path_ = declare_parameter<std::string>("csv_path", "");
+  } catch (rclcpp::ParameterTypeException & ex) {
+    RCLCPP_ERROR(get_logger(), "The csv_path provided was invalid");
+  }
+  RCLCPP_INFO(get_logger(), "params: test_csv=%s, csv_path=%s", test_csv_ ? "true": "false", csv_path_.c_str());
 }
 
 void CanBridgeNode::receive()
@@ -209,10 +226,9 @@ void CanBridgeNode::receive()
 
 void CanBridgeNode::on_frame(const can_msgs::msg::Frame::SharedPtr msg)
 {
-  RCLCPP_INFO(get_logger(), "on_frame");
   if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE) {
     try {
-      RCLCPP_INFO(get_logger(), "on_frame %d: %d", can_idx_, msg->id);
+      RCLCPP_DEBUG(get_logger(), "on_frame %d: %d", can_idx_, msg->id);
       driver_->send(can_idx_, *msg);
     } catch (const std::exception & ex) {
       RCLCPP_WARN_THROTTLE(

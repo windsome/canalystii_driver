@@ -5,3 +5,4 @@
     can_idx: 0
     can_baud_rate: 0x1C00
     use_bus_time: false
+    test_csv: false
